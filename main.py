@@ -19,7 +19,7 @@ def ttl_download(_, msg):
                       f"{time.strftime('%d.%m.%Y %H:%M:%S', time.gmtime(msg.date))}, {msg.photo.ttl_seconds}s"
             with open("downloads/photo.jpg", "rb") as photo:
                 app.send_photo(channel_id, photo, mention)
-            os.remove("downloads/photo.jpg")
+            os.remove(os.path.join("downloads", "photo.jpg"))
 
     if hasattr(msg.video, "ttl_seconds"):
         if msg.video.ttl_seconds:
@@ -28,7 +28,7 @@ def ttl_download(_, msg):
                       f"{time.strftime('%d.%m.%Y %H:%M:%S', time.gmtime(msg.date))}, {msg.video.ttl_seconds}s"
             with open("downloads/video.mp4", "rb") as video:
                 app.send_video(channel_id, video, mention)
-            os.remove("downloads/video.mp4")
+            os.remove(os.path.join("downloads", "video.mp4"))
 
 
 app.run()
