@@ -2,7 +2,7 @@
 Save telegram self-destruct photos and videos
 
 ## Requirements
-0. OS: Linux/Mac/Windows
+0. Linux/Mac/Windows
 1. Python 3.6+
 2. Modules: ```pip3 install pyrogram tgcrypto```
    
