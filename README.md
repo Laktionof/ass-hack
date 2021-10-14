@@ -16,8 +16,8 @@ Just send invite link _t.me/joinchat/..._ to [@username_to_id_bot](t.me/username
 ### 3. API id and API hash
 Login at www.my.telegram.org, choose "API development tool" and get your `api_id` and `api_hash`
 ### 4. Config
-Fill `config.py`:
-1. `session_name` - any text. But if you will use other userbot, `session_name` must be other too, otherwise you will get an error
+Fill in the `config.py`:
+1. `session_name` is any text. But if you will use other userbot, `session_name` must be other too, otherwise you will get an error
 2. `api_id` and `api_hash` - you already have it
 3. `channel_id` - id of channel-storage for media, starts with -100
 4. `last_message amount` - after command `!ass-hack` script will check the last X messages in all private chats, looking for self-destruct media
