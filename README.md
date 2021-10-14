@@ -21,7 +21,7 @@ api_id = 1234567
 api_hash = "example000example000"
 channel_id = -1001234567890
 ```
-Where ```session_name``` is any text. But if you will use other userbot, ```session_name``` must be other too, otherwise you wil get an error
+Where ```session_name``` is any text. But if you will use other userbot, ```session_name``` must be other too, otherwise you will get an error
 ### 5. Run!
 ```
 cd /path/to/script
