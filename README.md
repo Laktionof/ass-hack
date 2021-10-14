@@ -4,7 +4,9 @@ Save telegram self-destruct photos and videos
 ## Requirements
 0. Linux/Mac/Windows
 1. Python 3.6+
-2. Modules: ```pip3 install pyrogram tgcrypto```
+2. Modules: `pip install pyrogram tgcrypto` (or `pip3 install pyrogram tgcrypto`)
+   
+Tested on Ubuntu 21.04, Python 3.9 (
    
 ## Starting
 ### 1. Create private channel
@@ -12,19 +14,13 @@ You can edit it what you would like
 ### 2. Get channel id
 Just send invite link _t.me/joinchat/..._ to [@username_to_id_bot](t.me/username_to_id_bot) and get id starts with -100
 ### 3. API id and API hash
-Login at www.my.telegram.org, choose "API development tool" and get your ```api_id``` and ```api_hash```
+Login at www.my.telegram.org, choose "API development tool" and get your `api_id` and `api_hash`
 ### 4. Config
-Create ```config.py``` in the same directory as the ```main.py``` with text:
-```
-session_name = "example"
-api_id = 1234567
-api_hash = "example000example000"
-channel_id = -1001234567890
-```
-Where ```session_name``` is any text. But if you will use other userbot, ```session_name``` must be other too, otherwise you will get an error
+Fill `config.py`:
+ `session_name` is any text. But if you will use other userbot, `session_name` must be other too, otherwise you will get an error
 ### 5. Run!
 ```
 cd /path/to/script
 python3 main.py
 ```
-Run it before you receive self-destruct photo/video, and script will post it to your private channel automatically!
+Run it before you receive self-destruct photo/video, and script will post it to your private channel automatically. But if you run it after receiving self-desctruct media, hust send message `!ass-hack` to any chat
