@@ -20,7 +20,7 @@ Fill in the `config.py`:
 1. `session_name` is any text. But if you will use other userbot, `session_name` must be other too, otherwise you will get an error
 2. `api_id` and `api_hash` - you already have it
 3. `channel_id` - id of channel-storage for media, starts with -100
-4. `last_message amount` - after command `!ass-hack` script will check the last X messages in all private chats, looking for self-destruct media
+4. `last_message amount` - after command `!ass-hack` script will check the last X messages in the last 100 private chats, looking for self-destruct media
 ### 5. Run!
 ```
 cd /path/to/script/ass-hack
