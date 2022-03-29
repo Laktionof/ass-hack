@@ -12,7 +12,7 @@ Tested on Ubuntu 21.04, Python 3.9.5 and PyPy 7.3.5 with GCC 10.3.0 (Python 3.7)
 ### 1. Create private channel
 You can edit it what you would like
 ### 2. Get channel id
-Just send invite link _t.me/joinchat/..._ to [@username_to_id_bot](t.me/username_to_id_bot) and get id starts with -100
+Just send invite link _t.me/joinchat/..._ to [@username_to_id_bot](https://t.me/username_to_id_bot) and get id starts with -100
 ### 3. API id and API hash
 Login at www.my.telegram.org, choose "API development tool" and get your `api_id` and `api_hash`
 ### 4. Config
