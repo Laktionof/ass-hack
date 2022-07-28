@@ -14,7 +14,7 @@ You can edit it what you would like
 ### 2. Get channel id
 Just send invite link _t.me/joinchat/..._ to [@username_to_id_bot](https://t.me/username_to_id_bot) and get id starts with -100
 ### 3. API id and API hash
-Login at www.my.telegram.org, choose "API development tool" and get your `api_id` and `api_hash`
+Login at my.telegram.org, choose "API development tool" and get your `api_id` and `api_hash`
 ### 4. Config
 Fill in the `config.py`:
 1. `session_name` is any text. But if you will use other userbot, `session_name` must be other too, otherwise you will get an error
