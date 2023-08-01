@@ -1,95 +1,106 @@
-from pyrogram import Client, filters
-from pyrogram.errors import FloodWait, MessageNotModified, MessageIdInvalid
-from time import sleep, strftime, gmtime, time
-from os import remove
+from os import getenv, remove
 from os.path import join
-from random import randint
-import config
+from time import sleep
+from datetime import timedelta
+from dotenv import load_dotenv, set_key
+from pyrogram import Client, filters
+from pyrogram.enums import MessageMediaType
+from pyrogram.errors import FloodWait, MessageIdInvalid
 
-app = Client(config.session_name, config.api_id, config.api_hash)
+load_dotenv()
 
+SESSION_NAME = getenv('SESSION_NAME')
+API_ID = int(getenv('API_ID'))
+API_HASH = getenv('API_HASH')
+SESSION_STRING = getenv('SESSION_STRING')
+LAST_MESSAGES_AMOUNT = int(getenv('LAST_MESSAGES_AMOUNT'))
+MAX_FILE_SIZE_FOR_IN_MEMORY_DOWNLOADS = int(getenv('MAX_FILE_SIZE_FOR_IN_MEMORY_DOWNLOADS'))
 
-async def msg_info(msg):
-    media_type = ""
-    ttl = 0
-    if hasattr(msg.photo, "ttl_seconds"):
-        if msg.photo.ttl_seconds:
-            media_type = "photo"
-            ttl = msg.photo.ttl_seconds
-    elif hasattr(msg.video, "ttl_seconds"):
-        if msg.video.ttl_seconds:
-            media_type = "video"
-            ttl = msg.video.ttl_seconds
-
-    if media_type:
-        full_name = msg.from_user.first_name + (f' {msg.from_user.last_name}'
-                                                if msg.from_user.last_name else '')
-        sender = f"[{full_name}](tg://user?id={msg.from_user.id})"
-        sending_time = f"{strftime('%x %X', gmtime(msg.date))}"
-        return sender, media_type, sending_time, ttl
-    else:
-        return None, None, None, None
+if SESSION_STRING:
+    app = Client(SESSION_NAME, API_ID, API_HASH, session_string=SESSION_STRING)
+else:
+    app = Client(SESSION_NAME, API_ID, API_HASH, in_memory=True)
+    app.start()
+    SESSION_STRING = app.export_session_string()
+    set_key(".env", "SESSION_STRING", SESSION_STRING)
+    app.stop()
 
 
-async def save_media(msg, sender, media_type, sending_time, ttl):
+def save_secret(msg, command_msg=None):
+    work_chat_id = command_msg.chat.id if command_msg else "me"
+
+    sender_name = msg.from_user.first_name + (" " + msg.from_user.last_name if msg.from_user.last_name else "")
+    sender_name_link = f"[{sender_name}](tg://user?id={msg.from_user.id})"
+    sending_date = msg.date.strftime("%Y-%m-%d %X")
+
+    if msg.media == MessageMediaType.PHOTO:
+        ttl = msg.photo.ttl_seconds
+        attachment_size_KiB = round(msg.photo.file_size/1024, 2)
+        tmp_info_msg = app.send_message(work_chat_id,
+                                        f"{sender_name_link} sent a photo, {msg.photo.width}x{msg.photo.height}, " \
+                                        f"{attachment_size_KiB} KiB, {ttl} s, {sending_date}\n__Uploading...__")
+        
+        caption = f"{sender_name_link}, {msg.photo.width}x{msg.photo.height}, {attachment_size_KiB} KiB, {ttl} s, {sending_date}"
+        attachment = msg.download(in_memory=True)
+
+        app.send_photo(work_chat_id, attachment, caption)
+
+    elif msg.media == MessageMediaType.VIDEO:
+        ttl = msg.video.ttl_seconds
+        video_duration = timedelta(seconds=msg.video.duration)
+        attachment_size_MiB = round(msg.video.file_size/1024/1024, 2)
+        tmp_info_msg = app.send_message(work_chat_id,
+                                        f"{sender_name_link} sent a video, {msg.video.width}x{msg.video.height}, " \
+                                        f"{attachment_size_MiB} MiB, {video_duration}, {ttl} s, {sending_date} s\n__Uploading...__")
+
+        caption = f"{sender_name_link}, {video_duration}, {msg.video.width}x{msg.video.height}, " \
+                  f"{attachment_size_MiB} MiB, {ttl} s, {sending_date}"
+        
+        if msg.video.file_size <= MAX_FILE_SIZE_FOR_IN_MEMORY_DOWNLOADS:
+            attachment = msg.download(in_memory=True)
+            app.send_video(work_chat_id, attachment, caption)
+
+        else:
+            msg.download(msg.video.file_unique_id)
+            with open(join("downloads", msg.video.file_unique_id), "rb") as attachment:
+                app.send_video(work_chat_id, attachment, caption)
+
+            remove(join("downloads", msg.video.file_unique_id))
+
+    tmp_info_msg.delete()
+
+    return True
+
+
+@app.on_message(filters.command("ping", prefixes="!") & filters.me)
+def ping_command(_, msg):
     try:
-        mes = await app.send_message(config.channel_id, f"{sender} sent {media_type}, {sending_time}, {ttl}s"
-                                                        f"\n__Uploading...__")
-        file_type = ("jpg" if media_type == "photo" else "mp4")
-        file_name = f"{msg.from_user.id}{time()*10000000}{randint(1, 10000000)}.{file_type}"
-        await app.download_media(msg, file_name)
-        mention = f"{sender}, {sending_time}, {ttl}s"
-        with open(join("downloads", file_name), "rb") as att:
-            if media_type == "photo":
-                await app.send_photo(config.channel_id, att, mention)
-            elif media_type == "video":
-                await app.send_video(config.channel_id, att, mention)
-        remove(join("downloads", file_name))
-        await mes.delete()
-    except FloodWait as e:
-        sleep(e.x)
-    except MessageIdInvalid:
-        pass
-
-
-@app.on_message(filters.command(["ass-hack", "asshack", "ah"], prefixes="!") & filters.me & ~filters.edited)
-async def on_command(_, msg):
-    try:
-        if msg.text in ("!ass-hack", "!asshack", "!ah"):
-            msg = await msg.edit(f"```{msg.text.markdown}```\n**Searching for self-destructing media...**")
-            success = False
-            my_id = (await app.get_me()).id
-            dialogs = await app.get_dialogs()
-            for dialog in dialogs:
-                if dialog.chat.type == "private" and dialog.chat.id != my_id:
-                    for mes in await app.get_history(dialog.chat.id, limit=config.last_messages_amount):
-                        sender, media_type, sending_time, ttl = await msg_info(mes)
-                        if sender:
-                            success = True
-                            msg = await msg.edit(f"{msg.text.markdown}\n￫ {sender} sent {media_type}, {sending_time}, {ttl}s")
-                            await save_media(mes, sender, media_type, sending_time, ttl)
-
-            if not success:
-                await msg.edit(f"{msg.text.markdown}\n**Nobody sent something :c**")
-            else:
-                await msg.edit(f"{msg.text.markdown}\n**Done!**")
+        print(msg.text)
+        msg.edit(f"`{msg.text}`\n\n**🏓 pong**")
 
     except FloodWait as e:
-        sleep(e.x)
+        sleep(e.value)
+
     except MessageIdInvalid:
         pass
 
 
 @app.on_message(filters.private & ~filters.me & (filters.photo | filters.video))
-async def in_background(_, msg):
+def ass_hack_background(_, msg):
     try:
-        sender, media_type, sending_time, ttl = await msg_info(msg)
-        if sender:
-            await save_media(msg, sender, media_type, sending_time, ttl)
+        if msg.media == MessageMediaType.PHOTO:
+            if msg.photo.ttl_seconds:
+                save_secret(msg)
+
+        elif msg.media == MessageMediaType.VIDEO:
+            if msg.video.ttl_seconds:
+                save_secret(msg)
+
     except FloodWait as e:
-        sleep(e.x)
+        sleep(e.value)
+
     except MessageIdInvalid:
         pass
 
-
+print("Running!")
 app.run()
