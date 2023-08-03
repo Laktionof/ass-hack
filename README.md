@@ -26,9 +26,9 @@ MAX_FILE_SIZE_FOR_IN_MEMORY_DOWNLOADS='10240'
 
 ```
 
-1. `api_id` and `api_hash` - get it on my.telegram.org
+1. `api_id` and `api_hash` - get it on my.telegram.org.
 2. `session_name` - is any text. But if you will use other userbot, `session_name` must be other too, otherwise you will get an error
-3. `session_string` - just leave it ai is.
+3. `session_string` - just leave it as is.
 
 ```
 git clone https://github.com/Laktionof/ass-hack

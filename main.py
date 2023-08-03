@@ -3,18 +3,23 @@ from os.path import join
 from time import sleep
 from datetime import timedelta
 from dotenv import load_dotenv, set_key
+from json import loads
 from pyrogram import Client, filters
 from pyrogram.enums import MessageMediaType
-from pyrogram.errors import FloodWait, MessageIdInvalid
+from pyrogram.errors import FloodWait, MessageIdInvalid, MessageNotModified
 
 load_dotenv()
 
 SESSION_NAME = getenv('SESSION_NAME')
-API_ID = int(getenv('API_ID'))
+API_ID = getenv('API_ID')
 API_HASH = getenv('API_HASH')
 SESSION_STRING = getenv('SESSION_STRING')
+
 LAST_MESSAGES_AMOUNT = int(getenv('LAST_MESSAGES_AMOUNT'))
 MAX_FILE_SIZE_FOR_IN_MEMORY_DOWNLOADS = int(getenv('MAX_FILE_SIZE_FOR_IN_MEMORY_DOWNLOADS'))
+COMMANDS = loads(getenv('COMMANDS'))
+PREFIXES = loads(getenv('PREFIXES'))
+
 
 if SESSION_STRING:
     app = Client(SESSION_NAME, API_ID, API_HASH, session_string=SESSION_STRING)
@@ -69,8 +74,6 @@ def save_secret(msg, command_msg=None):
 
     tmp_info_msg.delete()
 
-    return True
-
 
 @app.on_message(filters.command("ping", prefixes="!") & filters.me)
 def ping_command(_, msg):
@@ -101,6 +104,38 @@ def ass_hack_background(_, msg):
 
     except MessageIdInvalid:
         pass
+
+
+@app.on_message(filters.command(COMMANDS, prefixes=PREFIXES) & filters.me)
+def ass_hack_command(_, msg):
+    try:
+        if msg.text:
+            my_id = app.get_me().id
+            msg = msg.edit(f"```{msg.text.markdown}```\n**Searching for self-destructing media...**")
+
+            for chat in app.get_dialogs():
+                if chat.chat.type == "private" and chat.chat.id != my_id:
+                    for chat_msg in app.get_chat_history(chat.chat.id, limit=LAST_MESSAGES_AMOUNT):
+                        if chat_msg.media == MessageMediaType.PHOTO:
+                            if chat_msg.photo.ttl_seconds:
+                                save_secret(chat_msg, msg)
+
+                        elif chat_msg.media == MessageMediaType.VIDEO:
+                            if chat_msg.video.ttl_seconds:
+                                save_secret(chat_msg, msg)
+
+            msg.edit(f"{msg.text.markdown}\n**Done!**")
+
+    except FloodWait as e:
+        print("FloodWait")
+        sleep(e.value)
+
+    # except MessageNotModified:
+    #     pass
+
+@app.on_message(filters.command("!test", prefixes="") & filters.me)
+def test(_, msg):
+    print("TEST")
 
 print("Running!")
 app.run()
