@@ -78,7 +78,6 @@ def save_secret(msg, command_msg=None):
 @app.on_message(filters.command("ping", prefixes="!") & filters.me)
 def ping_command(_, msg):
     try:
-        print(msg.text)
         msg.edit(f"`{msg.text}`\n\n**🏓 pong**")
 
     except FloodWait as e:
